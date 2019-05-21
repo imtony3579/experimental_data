@@ -14,6 +14,12 @@ style.use('ggplot')
 #            y[index] = 0.
 #    return y
 
+def average_force(arr,time, low, larg):
+	a = []
+	for index, val in enumerate(time):
+		if time[index]>low and time[index]<larg:
+			a.append(arr[index])
+	return sum(a)/float(len(a))
 
 def filter(y,n = 50):
     fft1 = rfft(y)
@@ -23,9 +29,17 @@ def filter(y,n = 50):
     ibp = irfft(bp)
     return ibp
 
+def adj_d(y, n):
+    for i in range(n):
+        y[i] = 0
+
+    return y
+
 def adj_data(y):
     a = min(y[0:3500,1])
     point =list(y[:,1]).index(a)
+    if point <= 1000:
+        point = 1810
     y[:,1] = y[:,1] - a
     for i in range(point):
         y[i,1] = 0
@@ -70,10 +84,11 @@ imp = read_imp('blunt_impulseResfun.csv')
 #imp = read_imp('cup_impulseResfun.csv')
 #imp = read_imp('flat_impulseResfun.csv')
 
-data1 = getting_file("30042019_1500",0)
-data2 = getting_file("30042019_1500",2)
+data1 = getting_file("30042019_1920",4)
+data2 = getting_file("30042019_1920",6)
 data2[:,1] = filter(data2[:,1])
-data3,n = adj_data(data2)
+
+data3, n = adj_data(data2)
 dt = data1[1,0] - data1[0,0]
 freque = fftfreq(data1[:,0].size, dt)
 
@@ -82,18 +97,24 @@ freque = fftfreq(data1[:,0].size, dt)
 #data1[:,1] = filter(data1[:,1])
 
 #freque = fftfreq(data3[n:7014+n,0].size, 1e-06)
-i_p = input(imp[:,1], data3[n:7014+n,1],data3[n:7014+n,0])
-i_p = filter(i_p)
-#plt.figure()
-#print(data1[:,0])
-#plt.plot(data3[:,0],data3[:,1])
-#plt.plot(data1[:,0],data1[:,1])
-#plt.show()
+i_p = input(imp[:,1], data3[0:7014,1],data3[0:7014,0])
+i_p = adj_d(filter(i_p),n)
+
+average_f = average_force(i_p,data3[0:7014,0], 0.0025, 0.006)
+print(average_f)
+plt.figure()
+plt.plot(data2[:,0],data2[:,1])
+plt.plot(data1[:,0],data1[:,1])
+plt.show()
 
 plt.figure()
-plt.plot(data3[n:7014+n,0],i_p)
-plt.plot(data2[n:7014+n,0],data2[n:7014+n,1])
+plt.plot(data3[0:7014,0],i_p)
+plt.title('Drag force N')
+plt.xlabel('Time (s)')
+plt.grid(True)
+plt.ylabel('Applied load, F(t) (N)')
+#plt.plot(data2[0:7014,0],data2[0:7014,1])
 plt.show()
-#
+
 
 
