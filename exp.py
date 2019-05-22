@@ -14,7 +14,7 @@ style.use('ggplot')
 #            y[index] = 0.
 #    return y
 
-def average_force(arr,time, low, larg):
+def force(arr,time, low, larg):
 	a = []
 	for index, val in enumerate(time):
 		if time[index]>low and time[index]<larg:
@@ -56,9 +56,41 @@ def read_imp(name):
 
 #in[]
 def input(imp, op, time):
-    x = ifft(fft(op)/(fft(imp)*fft(time)))
+    x = ifft((fft(op)/(fft(imp*fft(time)))))
     
     return x
+def drag_calc(name,fil,force,time):
+	if name == 'blunt':
+		low, larg = 0.003, 0.0032
+		a = []
+		for index, val in enumerate(time):
+			if time[index]>low and time[index]<larg:
+				a.append(fil[index])
+		temp = max(a)
+	if name == 'cup':
+		low, larg = 0.003, 0.0032
+		a = []
+		for index, val in enumerate(time):
+			if time[index]>low and time[index]<larg:
+				a.append(fil[index])
+		temp = max(a)
+	if name == 'flat':
+		low, larg = 0.003, 0.0032
+		a = []
+		for index, val in enumerate(time):
+			if time[index]>low and time[index]<larg:
+				a.append(fil[index])
+		temp = max(a)
+	area = 0.002376
+	mach = 8.8
+	gama = 1.4
+	s = 0.145e-06
+	p_ratio = (1 + (0.2*(mach*mach)))**(gama/(gama-1))
+	p_0 = temp / s
+	p_inf = p_0 / p_ratio
+	c_d = force/(gama*0.5*mach*mach*p_inf*area)
+	print("pinf= {},p_0={}, c_d={}, press_ratio={}".format(p_inf, p_0, c_d, p_ratio))
+
 
 def getting_file(name, num_sheet):
     
@@ -74,18 +106,16 @@ def getting_file(name, num_sheet):
     #data_tim = filter(a)
     return a
 
-
-
-#02052019_1500 02052019_1825 02052019_1910 06052019_1605 07052019_1245 07052019_1450
-#26042019_1508 30042019_1500 30042019_1545 x30042019_1653 x30042019_1825
-#30042019_1920
+#cup 02052019_1825 06052019_1605 07052019_1245  
+#blunt 30042019_1500 30042019_1920 
+#flat 07052019_1450
 
 imp = read_imp('blunt_impulseResfun.csv')
 #imp = read_imp('cup_impulseResfun.csv')
 #imp = read_imp('flat_impulseResfun.csv')
 
-data1 = getting_file("30042019_1920",4)
-data2 = getting_file("30042019_1920",6)
+data1 = getting_file("30042019_1500",0)
+data2 = getting_file("30042019_1500",2)
 data2[:,1] = filter(data2[:,1])
 
 data3, n = adj_data(data2)
@@ -100,15 +130,15 @@ freque = fftfreq(data1[:,0].size, dt)
 i_p = input(imp[:,1], data3[0:7014,1],data3[0:7014,0])
 i_p = adj_d(filter(i_p),n)
 
-average_f = average_force(i_p,data3[0:7014,0], 0.0025, 0.006)
-print(average_f)
-plt.figure()
-plt.plot(data2[:,0],data2[:,1])
-plt.plot(data1[:,0],data1[:,1])
-plt.show()
+forc = force(i_p,data3[0:7014,0], 0.005, 0.0055)
+print(forc)
+#plt.figure()
+##plt.plot(data2[:,0],data2[:,1])
+#plt.plot(data1[:,0],data1[:,1])
+#plt.show()
 
 plt.figure()
-plt.plot(data3[0:7014,0],i_p)
+plt.plot(data3[0:7014,0],np.real(i_p))
 plt.title('Drag force N')
 plt.xlabel('Time (s)')
 plt.grid(True)
@@ -117,4 +147,4 @@ plt.ylabel('Applied load, F(t) (N)')
 plt.show()
 
 
-
+drag_calc('blunt',data1[:,1],forc,data1[:,0])
