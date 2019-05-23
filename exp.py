@@ -55,10 +55,14 @@ def read_imp(name):
    return fil_arr
 
 #in[]
-def input(imp, op, time):
-    x = ifft((fft(op)/(fft(imp*fft(time)))))
-    
-    return x
+def input(imp, op, time, old='no'):
+	if old == 'flat':
+		x = ifft(fft(op)/(fft(imp)*fft(time)))	
+		return x
+	else:
+		x = ifft((fft(op)/(fft(imp*fft(time)))))
+		return x
+
 def drag_calc(name,fil,force,time):
 	if name == 'blunt':
 		low, larg = 0.003, 0.0032
@@ -110,12 +114,12 @@ def getting_file(name, num_sheet):
 #blunt 30042019_1500 30042019_1920 
 #flat 07052019_1450
 
-imp = read_imp('blunt_impulseResfun.csv')
+#imp = read_imp('blunt_impulseResfun.csv')
 #imp = read_imp('cup_impulseResfun.csv')
-#imp = read_imp('flat_impulseResfun.csv')
+imp = read_imp('flat_impulseResfun.csv')
 
-data1 = getting_file("30042019_1500",0)
-data2 = getting_file("30042019_1500",2)
+data1 = getting_file("07052019_1450",4)
+data2 = getting_file("07052019_1450",6)
 data2[:,1] = filter(data2[:,1])
 
 data3, n = adj_data(data2)
@@ -127,10 +131,13 @@ freque = fftfreq(data1[:,0].size, dt)
 #data1[:,1] = filter(data1[:,1])
 
 #freque = fftfreq(data3[n:7014+n,0].size, 1e-06)
-i_p = input(imp[:,1], data3[0:7014,1],data3[0:7014,0])
+#i_p = input(imp[:,1], data3[0:7014,1],data3[0:7014,0], 'flat')
+
+i_p = input(imp[:,1], data3[0:7014,1],data3[0:7014,0], 'flat')
 i_p = adj_d(filter(i_p),n)
 
-forc = force(i_p,data3[0:7014,0], 0.005, 0.0055)
+
+forc = force(i_p,data3[0:7014,0], 0.0037, 0.005)
 print(forc)
 #plt.figure()
 ##plt.plot(data2[:,0],data2[:,1])
